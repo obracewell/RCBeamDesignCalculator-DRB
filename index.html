@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -323,71 +323,67 @@
                 fsp = fy;
                 Asp = As2;
               } else {
-                fsp = 29000 * epsilp;
+                fsp = 29000 * epsilp *1000;
                 Asp = As2 * (fy/fsp);
               }
             let Asreq = As1 + As2;
            
-            output += `A<sub>s,req</sub> = ${Asreq.toFixed(2)} in\n\n`;
-            output += `A<sub>s,req</sub>' = ${Asp.toFixed(2)} in\n\n`;
+            output += `A<sub>s,req</sub> = ${Asreq.toFixed(2)} in²\n\n`;
+            output += `A<sub>s,req</sub>' = ${Asp.toFixed(2)} in²\n\n`;
             
-            // THIS IS WHERE I LEFT OFF CODING//
-                
+                           
             output += `Bar Options:\n`;
 
-              // Filter the bar table
-              const sortedTable = barTable.sort((a, b) => a.area - b.area);
-
-              let less = [];
-              let equal = [];
-              let greater = [];
-
-              sortedTable.forEach(row => {
-                if (row.area < Asreq) less.push(row);
-                else if (row.area === Asreq) equal.push(row);
-                else greater.push(row);
-              });
-
-              // Take all equal, last 4 from lesser, first 8 from greater
-                const closestLess = less.sort((a, b) => b.area - a.area).slice(0, 4);
-                const topGreater = greater.slice(0, 8);
-                const selectedRows = closestLess
-                    .concat(equal)
-                    .concat(topGreater)
-                    .filter(row => row.bmin <= b);
-
-              // Build tension As table output
-              output += `<table>
-                          <tr>
-                            <th colspan="4" style="text-align:center; font-size: 1.1em;">Tension Steel Options</th>
-                          </tr>
-                          <tr>
-                            <th>Bar Selection</th>
-                            <th>Area (in²)</th>
-                            <th>Rows</th>
-                            <th>b<sub>min</sub> (in)</th>
-                          </tr>`;
-              selectedRows.forEach(row => {
-                output += `<tr>
-                            <td>${row.barSelection}</td>
-                            <td>${row.area.toFixed(2)}</td>
-                            <td>${row.rows}</td>
-                            <td>${row.bmin}</td>
-                          </tr>`;
-                 });
-              output += `</table>`;
+            // === TENSION STEEL OPTIONS TABLE ===
+            const sortedTable = barTable.sort((a, b) => a.area - b.area);
+            let less = [], equal = [], greater = [];
+            sortedTable.forEach(row => {
+              if (row.area < Asreq) less.push(row);
+              else if (row.area === Asreq) equal.push(row);
+              else greater.push(row);
+            });
+            const closestLess = less.sort((a, b) => b.area - a.area).slice(0, 4);
+            const topGreater = greater.slice(0, 8);
+            const tensionRows = closestLess.concat(equal).concat(topGreater).filter(row => row.bmin <= b);
             
-            output += `
-                Use <a href="https://obracewell.github.io/RCBeamCalculator-Tables/" target="_blank" class="styled-link">Tables A.4 and A.5</a> to find more options.<br>`;
+            output += `<table>
+              <tr><th colspan="4" style="text-align:center; font-size: 1.1em;">Tension Steel Options</th></tr>
+              <tr><th>Bar Selection</th><th>Area (in²)</th><th>Rows</th><th>b<sub>min</sub> (in)</th></tr>`;
+            tensionRows.forEach(row => {
+              output += `<tr><td>${row.barSelection}</td><td>${row.area.toFixed(2)}</td><td>${row.rows}</td><td>${row.bmin}</td></tr>`;
+            });
+            output += `</table><br>`;
 
+            // === COMPRESSION STEEL OPTIONS TABLE ===
+            less = []; equal = []; greater = [];
+            sortedTable.forEach(row => {
+              if (row.area < Asp) less.push(row);
+              else if (row.area === Asp) equal.push(row);
+              else greater.push(row);
+            });
+            const compressionRows = equal
+                  .concat(greater.slice(0, 5))
+                  .filter(row => row.bmin <= b && row.rows === "1 row");
+
+
+            output += `<table>
+              <tr><th colspan="4" style="text-align:center; font-size: 1.1em;">Compression Steel Options</th></tr>
+              <tr><th>Bar Selection</th><th>Area (in²)</th><th>Rows</th><th>b<sub>min</sub> (in)</th></tr>`;
+            compressionRows.forEach(row => {
+              output += `<tr><td>${row.barSelection}</td><td>${row.area.toFixed(2)}</td><td>${row.rows}</td><td>${row.bmin}</td></tr>`;
+            });
+            output += `</table><br>`;
+
+            // Prompt for final As and Asp entry
             output += `
-              <p style="margin-top: 20px;">Choose an option for A<sub>s</sub>.</p>
-              <label for="As">Area of steel for chosen bar selection, A<sub>s</sub> (in<sup>2</sup>): </label>
-              <input type="number" id="As" step="0.01">
-              <button onclick="performAspSelection()">Choose A<sub>s</sub>'</button>
-              <div id="customOutput" style="margin-top: 15px; font-weight: bold;"></div>`;
-              document.getElementById('output').innerHTML = output;
-            }  
+              Use <a href="https://obracewell.github.io/RCBeamCalculator-Tables/" target="_blank" class="styled-link">Tables A.4 and A.5</a> to find more options.<br><br>
+              <label for="As">Chosen A<sub>s</sub> (in²): </label><input type="number" id="As" step="0.01"><br>
+              <label for="Aspc">Chosen A<sub>s</sub>' (in²): </label><input type="number" id="Aspc" step="0.01"><br>
+              <button onclick="performCustomCalc()">Analyze</button>
+            `;
+
+        document.getElementById('output').innerHTML = output;
+        }              
 
         function performAspSelection() {
               // Filter the bar table
