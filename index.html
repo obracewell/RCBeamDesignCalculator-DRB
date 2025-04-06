@@ -552,10 +552,10 @@
             // Compare to usable/design capacity
             const descap = phi * Mn;
             if (descap >= Mu) {
-                output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft > ${Mu.toFixed(2)} k·ft = M<sub>u</sub>\n`;
+                output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft > ${Mu.toFixed(2)} k·ft = M<sub>u</sub><br>`;
                 output += `Minimum design capacity met!<br>`;
             } else {
-                output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft < ${Mu.toFixed(2)} k·ft = M<sub>u</sub>\n`;
+                output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft < ${Mu.toFixed(2)} k·ft = M<sub>u</sub><br>`;
                 output += `Minimum design capacity not met. Analyze another option<br>`;
                 }
             
