@@ -284,7 +284,8 @@
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
             } else if ((fy == 40000) && (fc == 3000) && (Rn < 682.3)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
-          
+            }
+            
             const sqrt = Math.sqrt;
 
             let As1 = preq1*b*d;
@@ -332,12 +333,70 @@
                 else greater.push(row);
               });
 
+              // Take all equal, last 4 from lesser, first 8 from greater
+                const closestLess = less.sort((a, b) => b.area - a.area).slice(0, 4);
+                const topGreater = greater.slice(0, 8);
+                const selectedRows = closestLess
+                    .concat(equal)
+                    .concat(topGreater)
+                    .filter(row => row.bmin <= b);
+
+              // Build tension As table output
+              output += `<table>
+                          <tr>
+                            <th colspan="4" style="text-align:center; font-size: 1.1em;">Tension Steel Options</th>
+                          </tr>
+                          <tr>
+                            <th>Bar Selection</th>
+                            <th>Area (in²)</th>
+                            <th>Rows</th>
+                            <th>b<sub>min</sub> (in)</th>
+                          </tr>`;
+              selectedRows.forEach(row => {
+                output += `<tr>
+                            <td>${row.barSelection}</td>
+                            <td>${row.area.toFixed(2)}</td>
+                            <td>${row.rows}</td>
+                            <td>${row.bmin}</td>
+                          </tr>`;
+                 });
+              output += `</table>`;
+            
+            output += `
+                Use <a href="https://obracewell.github.io/RCBeamCalculator-Tables/" target="_blank" class="styled-link">Tables A.4 and A.5</a> to find more options.<br>`;
+
+            output += `
+              <p style="margin-top: 20px;">Choose an option for A<sub>s</sub>.</p>
+              <label for="As">Area of steel for chosen bar selection, A<sub>s</sub> (in<sup>2</sup>): </label>
+              <input type="number" id="As" step="0.01">
+              <button onclick="performAspSelection()">Choose A<sub>s</sub>'</button>
+              <div id="customOutput" style="margin-top: 15px; font-weight: bold;"></div>`;
+              document.getElementById('output').innerHTML = output;
+            }  
+
+        function performAspSelection() {
+              // Filter the bar table
+              const sortedTable = barTable.sort((a, b) => a.area - b.area);
+
+              let less = [];
+              let equal = [];
+              let greater = [];
+
+              sortedTable.forEach(row => {
+                if (row.area < Asp) less.push(row);
+                else if (row.area === Asp) equal.push(row);
+                else greater.push(row);
+              });
+
               // Take all equal, first 8 from greater
               const selectedRows = equal.concat(greater.slice(0, 10))
                                         .filter(row => row.bmin <= b);
 
               // Build table output
               output += `<table>
+                          <tr>
+                            <th colspan="4" style="text-align:center; font-size: 1.1em;">Compression Steel Options</th>
+                          </tr>
                           <tr>
                             <th>Bar Selection</th>
                             <th>Area (in²)</th>
@@ -359,11 +418,12 @@
 
             output += `
               <p style="margin-top: 20px;">Choose an option and ANALYZE</p>
-              <label for="As">Area of steel for chosen bar selection, A<sub>s</sub> (in<sup>2</sup>): </label>
-              <input type="number" id="As" step="0.01">
+              <label for="Aspc">Area of steel for chosen bar selection, A<sub>s</sub>' (in<sup>2</sup>): </label>
+              <input type="number" id="Aspc" step="0.01">
+              
+            
               <button onclick="performCustomCalc()">Analyze</button>
-              <div id="customOutput" style="margin-top: 15px; font-weight: bold;"></div>
-`;
+              <div id="customOutput" style="margin-top: 15px; font-weight: bold;"></div>`;
               document.getElementById('output').innerHTML = output;
             }
         
@@ -373,11 +433,13 @@
             let fc = parseFloat(document.getElementById('fc').value);
             let fy = parseFloat(document.getElementById('fy').value);
             let d = parseFloat(document.getElementById('d').value);
+            let dp = parseFloat(document.getElementById('dp').value);
             let b = parseFloat(document.getElementById('b').value);
             let As = parseFloat(document.getElementById('As').value);
+            let Aspc = parseFloat(document.getElementById('Aspc').value);
             
             // Validate inputs
-            if (isNaN(fc) || isNaN(fy) || isNaN(d) || isNaN(b) || isNaN(As)) {
+            if (isNaN(fc) || isNaN(fy) || isNaN(d) || isNaN(dp) || isNaN(b) || isNaN(As) || isNaN(Aspc)) {
                 alert("Please enter all values.");
             return;
             }
@@ -392,26 +454,66 @@
                 b1 = 0.65;
             }
 
-            // Check if As exceeds minimum value
-            const Asmin1 = (3 * Math.sqrt(fc) * b * d) / fy;
-            const Asmin2 = (200 * b * d) / fy;
-            const Asmin = Math.max(Asmin1, Asmin2);
-            
-            if (As < Asmin) {
-                errorMessage += 'The cross-sectional area of the steel does NOT exceed the minimum.\n';
-                errorMessage += 'These section parameters cannot be used.\n';
+            //Assume f's = fy and solve
+            let firsta = (fy * (As - Asp)) / (0.85 * fc * b);
+            let firstc = firsta / b1;
+            let firstcompstlstrn = ((firstc - dp)/firstc) * 0.003;
+
+            let assumption;
+            if (firstcompstlstrn >= (fy/29000000)) {
+                assumption = 1;
             } else {
-                output += 'The cross-sectional area exceeds the minimum.\n';
+                assumption = 0;
+            }
+
+           // Solve for c
+            let c;
+            if (assumption == 1) {
+                c = firstc;
+                output += `c = ${c.toFixed(2)} in\n`;
+            } else {
+                const e = 0.85 * fc/1000 * b1 * b;
+                const f = (Asp * 29000 * 0.003) - (As * fy/1000);
+                const g = -Asp * 29000 * 0.003 * dp;
+                function solveQuadratic(a, b, c) {
+                    const discriminant = b * b - 4 * a * c;
+
+                    if (discriminant < 0) {
+                        console.log("No real roots.");
+                        return null;
+                    }
+                    const root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                    const root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+
+                    return Math.max(root1, root2);
+                }
+                c = solveQuadratic(e,f,g);
+                output += `c = ${c.toFixed(2)} in\n`;
             }
             
             // Solve for a
-            const a = (As * fy) / (0.85 * fc * b);
-            output += `a = ${a.toFixed(2)} in\n`;
-            
-            // Solve for c
-            const c = a / b1;
-            output += `c = ${c.toFixed(2)} in\n`;
+            let a;
+            if (assumption == 1) {
+                a = firsta;
+                output += `a = ${a.toFixed(2)} in\n`;
+            } else {
+                a = c * b1;
+                output += `a = ${a.toFixed(2)} in\n`;
+            } 
 
+            // Solve for strain in compression steel
+            let compstlstrn;
+            let fsp;
+            if (assumption == 1) {
+                compstlstrn = firstcompstlstrn;
+                fsp = fy;
+                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}\n`;
+            } else {
+                compstlstrn = ((c - dp) / c) * 0.003;
+                fsp = 29000000 * compstlstrn;
+                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}\n`;
+            }
+            
             // Solve for strain in steel
             const stlstrain = ((d - c) / c) * 0.003;
             output += `&#949<sub>t</sub> = ${stlstrain.toFixed(4)}\n`;
