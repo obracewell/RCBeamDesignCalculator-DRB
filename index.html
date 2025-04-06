@@ -248,42 +248,55 @@
             //check if compression steel is necessary
             let Rn = (Mu*12000)/(0.9*b*d*d);
             let preq1;
+            let epsily;
             if ((fy == 60000) && (fc == 4000) && (Rn > 912)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0181;
                 epsily = 0.00207;
             } else if ((fy == 60000) && (fc == 3000) && (Rn > 685)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0136;
                 epsily = 0.00207;
             } else if ((fy == 50000) && (fc == 4000) && (Rn > 911.3)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0217;
                 epsily = 0.00172;
             } else if ((fy == 50000) && (fc == 3000) && (Rn > 684.4)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0163;
                 epsily = 0.00172;
             } else if ((fy == 40000) && (fc == 4000) && (Rn > 910.7)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0271;
                 epsily = 0.00138;
             } else if ((fy == 40000) && (fc == 3000) && (Rn > 682.3)){
-                output += `<p class="error">Ductile SRB solution does not exist. Must design DRB.</p>`;
+                output += `<p class="success">Ductile SRB solution does not exist. Must design DRB.</p>`;
                 preq1 = 0.0203;
                 epsily = 0.00138;
             } else if ((fy == 60000) && (fc == 4000) && (Rn < 912)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             } else if ((fy == 60000) && (fc == 3000) && (Rn < 685)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             } else if ((fy == 50000) && (fc == 4000) && (Rn < 911.3)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             } else if ((fy == 50000) && (fc == 3000) && (Rn < 684.4)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             } else if ((fy == 40000) && (fc == 4000) && (Rn < 910.7)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             } else if ((fy == 40000) && (fc == 3000) && (Rn < 682.3)){
                 output += `<p class="error">Ductile SRB solution does exist. DRB not necessary.</p>`;
+                document.getElementById('output').innerHTML = output;
+                return;
             }
             
             const sqrt = Math.sqrt;
@@ -304,6 +317,8 @@
             let Mn2 = (Mu/0.9) - Mn1;
             let As2 = (Mn2*12) / ((fy/1000)*(d-dp));
             let epsilp = ((c-dp)/c)*0.003
+            let Asp;
+            let fsp;
               if (epsilp >= epsily) {
                 fsp = fy;
                 Asp = As2;
@@ -376,20 +391,23 @@
 
         function performAspSelection() {
               // Filter the bar table
-              const sortedTable = barTable.sort((a, b) => a.area - b.area);
+            let output = '';
+            let Aspc = parseFloat(document.getElementById('Aspc').value);
+            let b = parseFloat(document.getElementById('b').value);
+            const sortedTable = barTable.sort((a, b) => a.area - b.area);
 
               let less = [];
               let equal = [];
               let greater = [];
 
               sortedTable.forEach(row => {
-                if (row.area < Asp) less.push(row);
-                else if (row.area === Asp) equal.push(row);
+                if (row.area < Aspc) less.push(row);
+                else if (row.area === Aspc) equal.push(row);
                 else greater.push(row);
               });
 
-              // Take all equal, first 8 from greater
-              const selectedRows = equal.concat(greater.slice(0, 10))
+              // Take all equal, first 5 from greater
+              const selectedRows = equal.concat(greater.slice(0, 5))
                                         .filter(row => row.bmin <= b);
 
               // Build table output
@@ -455,7 +473,7 @@
             }
 
             //Assume f's = fy and solve
-            let firsta = (fy * (As - Asp)) / (0.85 * fc * b);
+            let firsta = (fy * (As - Aspc)) / (0.85 * fc * b);
             let firstc = firsta / b1;
             let firstcompstlstrn = ((firstc - dp)/firstc) * 0.003;
 
