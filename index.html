@@ -355,13 +355,15 @@
             output += `</table><br>`;
 
             // === COMPRESSION STEEL OPTIONS TABLE ===
-            const compressionsortedTable = barTable
+            const compSorted = barTable
               .filter(row => row.rows === "1 row" && row.bmin <= b)
               .sort((a, b) => a.area - b.area);
 
-            const equalComp = compressionsortedTable.filter(row => row.area === Asp);
-            const greaterComp = compressionsortedTable.filter(row => row.area > Asp).slice(0, 5);
-            const compressionRows = equal.concat(greater);
+            const equalComp = compSorted.filter(row => Math.abs(row.area - Asp) < 0.001); // floating point safe comparison
+            const greaterComp = compSorted.filter(row => row.area > Asp).slice(0, 5);
+
+            const compressionRows = equalComp.concat(greaterComp);
+
 
 
             output += `<table>
