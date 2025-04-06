@@ -441,7 +441,7 @@
               
             
               <button onclick="performCustomCalc()">Analyze</button>
-              <div id="customOutput" style="margin-top: 15px; font-weight: bold;"></div>`;
+              
               document.getElementById('output').innerHTML = output;
             }
         
@@ -455,6 +455,7 @@
             let b = parseFloat(document.getElementById('b').value);
             let As = parseFloat(document.getElementById('As').value);
             let Aspc = parseFloat(document.getElementById('Aspc').value);
+            let Mu = parseFloat(document.getElementById('Mu').value);
             
             // Validate inputs
             if (isNaN(fc) || isNaN(fy) || isNaN(d) || isNaN(dp) || isNaN(b) || isNaN(As) || isNaN(Aspc)) {
@@ -491,8 +492,8 @@
                 output += `c = ${c.toFixed(2)} in\n`;
             } else {
                 const e = 0.85 * fc/1000 * b1 * b;
-                const f = (Asp * 29000 * 0.003) - (As * fy/1000);
-                const g = -Asp * 29000 * 0.003 * dp;
+                const f = (Aspc * 29000 * 0.003) - (As * fy/1000);
+                const g = -Aspc * 29000 * 0.003 * dp;
                 function solveQuadratic(a, b, c) {
                     const discriminant = b * b - 4 * a * c;
 
