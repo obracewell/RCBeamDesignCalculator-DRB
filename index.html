@@ -355,15 +355,13 @@
             output += `</table><br>`;
 
             // === COMPRESSION STEEL OPTIONS TABLE ===
-            less = []; equal = []; greater = [];
-            sortedTable.forEach(row => {
-              if (row.area < Asp) less.push(row);
-              else if (row.area === Asp) equal.push(row);
-              else greater.push(row);
-            });
-            const compressionRows = equal
-                  .concat(greater.slice(0, 5))
-                  .filter(row => row.bmin <= b && row.rows === "1 row");
+            const sortedTable = barTable
+              .filter(row => row.rows === "1 row" && row.bmin <= b)
+              .sort((a, b) => a.area - b.area);
+
+            const equal = sortedTable.filter(row => row.area === Asp);
+            const greater = sortedTable.filter(row => row.area > Asp).slice(0, 5);
+            const compressionRows = equal.concat(greater);
 
 
             output += `<table>
