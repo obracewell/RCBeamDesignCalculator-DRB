@@ -359,8 +359,8 @@
               .filter(row => row.rows === "1 row" && row.bmin <= b)
               .sort((a, b) => a.area - b.area);
 
-            const equal = compressionsortedTable.filter(row => row.area === Asp);
-            const greater = compressionsortedTable.filter(row => row.area > Asp).slice(0, 5);
+            const equalComp = compressionsortedTable.filter(row => row.area === Asp);
+            const greaterComp = compressionsortedTable.filter(row => row.area > Asp).slice(0, 5);
             const compressionRows = equal.concat(greater);
 
 
