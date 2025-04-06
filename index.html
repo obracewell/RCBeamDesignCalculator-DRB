@@ -323,7 +323,7 @@
                 fsp = fy;
                 Asp = As2;
               } else {
-                fsp = 29000 * epsilp *1000;
+                fsp = 29000000 * epsilp;
                 Asp = As2 * (fy/fsp);
               }
             let Asreq = As1 + As2;
@@ -484,7 +484,7 @@
             let c;
             if (assumption == 1) {
                 c = firstc;
-                output += `c = ${c.toFixed(2)} in\n`;
+                output += `c = ${c.toFixed(2)} in<br>`;
             } else {
                 const e = 0.85 * fc/1000 * b1 * b;
                 const f = (Aspc * 29000 * 0.003) - (As * fy/1000);
@@ -502,17 +502,17 @@
                     return Math.max(root1, root2);
                 }
                 c = solveQuadratic(e,f,g);
-                output += `c = ${c.toFixed(2)} in\n`;
+                output += `c = ${c.toFixed(2)} in<br>`;
             }
             
             // Solve for a
             let a;
             if (assumption == 1) {
                 a = firsta;
-                output += `a = ${a.toFixed(2)} in\n`;
+                output += `a = ${a.toFixed(2)} in<br>`;
             } else {
                 a = c * b1;
-                output += `a = ${a.toFixed(2)} in\n`;
+                output += `a = ${a.toFixed(2)} in<br>`;
             } 
 
             // Solve for strain in compression steel
@@ -521,42 +521,42 @@
             if (assumption == 1) {
                 compstlstrn = firstcompstlstrn;
                 fsp = fy;
-                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}\n`;
+                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}<br>`;
             } else {
                 compstlstrn = ((c - dp) / c) * 0.003;
                 fsp = 29000000 * compstlstrn;
-                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}\n`;
+                output += `&#949<sub>s</sub>' = ${compstlstrn.toFixed(6)}<br>`;
             }
             
             // Solve for strain in steel
             const stlstrain = ((d - c) / c) * 0.003;
-            output += `&#949<sub>t</sub> = ${stlstrain.toFixed(4)}\n`;
+            output += `&#949<sub>t</sub> = ${stlstrain.toFixed(4)}<br>`;
 
             // Calculate phi
             let phi;
             if (stlstrain >= 0.005) {
                 phi = 0.9;
-                output += `&#934 = ${phi.toFixed(2)}, Ductile Section\n`;
+                output += `&#934 = ${phi.toFixed(2)}, Ductile Section<br>`;
             } else if (stlstrain >= 0.004 && stlstrain < 0.005) {
                 phi = 0.65 + (stlstrain - 0.002) * (250 / 3);
-                output += `&#934 = ${phi.toFixed(2)}, <span style="color:orange;">Transition Zone</span>\n`;
+                output += `&#934 = ${phi.toFixed(2)}, <span style="color:orange;">Transition Zone</span><br>`;
             } else {
-                errorMessage += 'Tension strain in steel is less than 0.004 and therefore is not ACI compliant.\n';
-                errorMessage += 'These section parameters cannot be used.\n';
+                errorMessage += 'Tension strain in steel is less than 0.004 and therefore is not ACI compliant.<br>';
+                errorMessage += 'These section parameters cannot be used.<br>';
             }
             
             // Solve for maximum internal moment
-            const Mn = As * fy * (d - (a / 2)) * (1 / 12000);
-            output += `Maximum internal moment: M<sub>n</sub> = ${Mn.toFixed(2)} k·ft\n`;
+             const Mn =  ((0.85 * fc * a * b * (d - (a / 2))) + (Aspc * fsp * (d - dp))) * (1 / 12000);
+            output += `Maximum internal moment: M<sub>n</sub> = ${Mn.toFixed(2)} k·ft<br>`;
             
             // Compare to usable/design capacity
             const descap = phi * Mn;
             if (descap >= Mu) {
                 output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft > ${Mu.toFixed(2)} k·ft = M<sub>u</sub>\n`;
-                output += `Minimum design capacity met!\n`;
+                output += `Minimum design capacity met!<br>`;
             } else {
                 output += `&#934M<sub>n</sub> = ${descap.toFixed(2)} k·ft < ${Mu.toFixed(2)} k·ft = M<sub>u</sub>\n`;
-                output += `Minimum design capacity not met. Analyze another option\n`;
+                output += `Minimum design capacity not met. Analyze another option<br>`;
                 }
             
             // Always display results
