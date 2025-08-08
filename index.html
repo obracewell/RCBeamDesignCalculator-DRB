@@ -496,8 +496,11 @@
             output += `</table><br>`;
 
             // Prompt for final As and Asp entry
-            output += `
-              Use <a href="https://obracewell.github.io/RCBeamCalculator-Tables/" target="_blank" class="styled-link">Tables 3 and 4</a> to find more options.<br><br>
+           output += `
+              <p style="margin-top:1px">
+                Use <a href="https://obracewell.github.io/RCBeamCalculator-Tables/" target="_blank" class="styled-link">Tables 3 and 4</a> to find more options. 
+                <a href="#" class="styled-link" onclick="showModal('barModal');return false;">Important Info for Multi‑Row Design!</a>
+              </p>              
               <label for="As">Chosen A<sub>s</sub> (in²): </label><input type="number" id="As" step="0.01"><br>
               <label for="Aspc">Chosen A<sub>s</sub>' (in²): </label><input type="number" id="Aspc" step="0.01"><br>
               <button onclick="performCustomCalc()">Analyze</button>
